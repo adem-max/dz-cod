@@ -124,7 +124,10 @@ def setup_company():
 		system.update({"country": "Algeria", "currency": "DZD", "time_zone": "Africa/Algiers", "language": "fr"})
 		system.save()
 
-	frappe.db.set_single_value("Global Defaults", {"default_company": D.COMPANY, "default_currency": "DZD"})
+	# Saving the document (not just the value) also sets every user's default company
+	defaults = frappe.get_doc("Global Defaults")
+	defaults.update({"default_company": D.COMPANY, "default_currency": "DZD", "country": "Algeria"})
+	defaults.save()
 	ensure_fiscal_years()
 
 
@@ -647,6 +650,9 @@ def create_settlements(rng):
 				fields=["name", "dz_tracking_number", "dz_cod_amount", "dz_courier_fee"],
 				order_by="name",
 			)
+			# Orders already disputed in an earlier Versement stay disputed
+			already_listed = set(frappe.get_all("Courier Settlement Item", pluck="sales_order"))
+			orders = [order for order in orders if order.name not in already_listed]
 			if not orders:
 				continue
 

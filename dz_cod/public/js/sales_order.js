@@ -19,7 +19,11 @@ frappe.ui.form.on("Sales Order", {
 		if (frm.selected_workflow_action !== "Expédier") {
 			return;
 		}
+		// Frappe greys out the screen while a workflow action runs. Lift that
+		// while our dialog is open, otherwise nobody can click in it.
+		frappe.dom.unfreeze();
 		return new Promise((resolve, reject) => {
+			let shipped = false; // closing the dialog without shipping cancels the action
 			const dialog = new frappe.ui.Dialog({
 				title: __("Expédier la commande"),
 				fields: [
@@ -51,12 +55,16 @@ frappe.ui.form.on("Sales Order", {
 							tracking_number: values.tracking_number,
 						})
 						.then(() => {
+							shipped = true;
 							dialog.hide();
+							frappe.dom.freeze(); // Frappe unfreezes when the action is done
 							resolve();
-						}, reject);
+						});
 				},
 			});
-			dialog.onhide = () => reject();
+			dialog.onhide = () => {
+				if (!shipped) reject();
+			};
 			dialog.show();
 		});
 	},
@@ -89,7 +97,8 @@ function inspect_return(frm) {
 					in_place_edit: true,
 					data: rows,
 					fields: [
-						{ fieldname: "item_code", label: __("Article"), fieldtype: "Data", read_only: 1, in_list_view: 1 },
+						{ fieldname: "item_code", label: __("Code"), fieldtype: "Data", read_only: 1, in_list_view: 1 },
+						{ fieldname: "item_name", label: __("Article"), fieldtype: "Data", read_only: 1, in_list_view: 1 },
 						{ fieldname: "good_qty", label: __("Bon état"), fieldtype: "Float", in_list_view: 1 },
 						{ fieldname: "damaged_qty", label: __("Abîmé"), fieldtype: "Float", in_list_view: 1 },
 					],
