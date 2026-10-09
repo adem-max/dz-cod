@@ -52,10 +52,15 @@ def run():
 		if frappe.db.exists("Supplier", courier):
 			frappe.delete_doc("Supplier", courier, force=True)
 	brand_items = {"brand": ["in", D.BRANDS]}
-	frappe.db.delete("Item Price", {"item_code": ["in", frappe.get_all("Item", filters=brand_items, pluck="name")]})
+	frappe.db.delete(
+		"Item Price", {"item_code": ["in", frappe.get_all("Item", filters=brand_items, pluck="name")]}
+	)
 	# Variants first, then templates (a template cannot go while it has variants)
 	for has_variants in (0, 1):
-		for filters in (dict(brand_items, has_variants=has_variants), {"item_code": ["like", "BLANK%"], "has_variants": has_variants}):
+		for filters in (
+			dict(brand_items, has_variants=has_variants),
+			{"item_code": ["like", "BLANK%"], "has_variants": has_variants},
+		):
 			for name in frappe.get_all("Item", filters=filters, pluck="name"):
 				frappe.delete_doc("Item", name, force=True)
 

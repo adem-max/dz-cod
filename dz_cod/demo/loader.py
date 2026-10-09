@@ -121,7 +121,9 @@ def setup_company():
 		)
 		company.insert()
 		system = frappe.get_doc("System Settings")
-		system.update({"country": "Algeria", "currency": "DZD", "time_zone": "Africa/Algiers", "language": "fr"})
+		system.update(
+			{"country": "Algeria", "currency": "DZD", "time_zone": "Africa/Algiers", "language": "fr"}
+		)
 		system.save()
 
 	# Saving the document (not just the value) also sets every user's default company
@@ -137,7 +139,9 @@ def ensure_fiscal_years():
 	for year in range(first_year, getdate(today()).year + 1):
 		if not frappe.db.exists("Fiscal Year", {"year_start_date": f"{year}-01-01"}):
 			fy = frappe.new_doc("Fiscal Year")
-			fy.update({"year": str(year), "year_start_date": f"{year}-01-01", "year_end_date": f"{year}-12-31"})
+			fy.update(
+				{"year": str(year), "year_start_date": f"{year}-01-01", "year_end_date": f"{year}-12-31"}
+			)
 			fy.insert()
 
 
@@ -159,7 +163,8 @@ def setup_settings():
 	shipping_account = f"{D.SHIPPING_ACCOUNT} - {D.ABBR}"
 	if not frappe.db.exists("Account", shipping_account):
 		income_root = frappe.db.get_value(
-			"Account", {"company": D.COMPANY, "root_type": "Income", "is_group": 1, "parent_account": ["is", "not set"]}
+			"Account",
+			{"company": D.COMPANY, "root_type": "Income", "is_group": 1, "parent_account": ["is", "not set"]},
 		)
 		account = frappe.new_doc("Account")
 		account.update(
@@ -279,7 +284,9 @@ def create_product(code, name, brand, group, cost, sizes, colours, is_sales_item
 			continue
 		variant = create_variant(code, combination)
 		# Readable name: "T-shirt Casbah Noir M"
-		variant.item_name = " ".join([name, combination.get("Couleur", ""), combination.get("Taille", "")]).strip()
+		variant.item_name = " ".join(
+			[name, combination.get("Couleur", ""), combination.get("Taille", "")]
+		).strip()
 		variant.valuation_rate = cost
 		variant.insert()
 		variant_codes.append(variant.name)
@@ -351,7 +358,9 @@ def setup_customers(rng):
 		if not name:
 			doc = frappe.new_doc("Customer")
 			doc.update({k: v for k, v in customer.items() if k != "zone"})
-			doc.update({"customer_type": "Individual", "customer_group": D.CUSTOMER_GROUP, "territory": territory})
+			doc.update(
+				{"customer_type": "Individual", "customer_group": D.CUSTOMER_GROUP, "territory": territory}
+			)
 			doc.insert()
 			name = doc.name
 		customer["name"] = name
@@ -375,7 +384,7 @@ def setup_couriers():
 				"dz_courier_adapter": "Mock",
 			},
 		)
-	frappe.db.set_single_value("COD Settings", "default_courier", list(D.COURIERS)[0])
+	frappe.db.set_single_value("COD Settings", "default_courier", D.DEFAULT_COURIER)
 
 
 # ----------------------------------------------------------- 4. opening stock
@@ -579,10 +588,18 @@ def create_order(story):
 	price_list = selling_price_list()
 	for item_code, qty in story["lines"]:
 		# Server-side inserts do not fetch prices (the browser form does): set it
-		rate = frappe.db.get_value("Item Price", {"item_code": item_code, "price_list": price_list}, "price_list_rate")
+		rate = frappe.db.get_value(
+			"Item Price", {"item_code": item_code, "price_list": price_list}, "price_list_rate"
+		)
 		order.append(
 			"items",
-			{"item_code": item_code, "qty": qty, "rate": rate, "price_list_rate": rate, "delivery_date": order.delivery_date},
+			{
+				"item_code": item_code,
+				"qty": qty,
+				"rate": rate,
+				"price_list_rate": rate,
+				"delivery_date": order.delivery_date,
+			},
 		)
 	order.insert()
 	return order.name
@@ -623,7 +640,9 @@ def inspect(order, date):
 	for index, row in enumerate(get_returned_items(order.name)):
 		# sum of the letters: a stable "random" choice (same result every run)
 		damaged = 1 if index == 0 and sum(map(ord, order.name)) % 6 == 0 else 0
-		items.append({"item_code": row["item_code"], "good_qty": row["qty"] - damaged, "damaged_qty": damaged})
+		items.append(
+			{"item_code": row["item_code"], "good_qty": row["qty"] - damaged, "damaged_qty": damaged}
+		)
 	inspect_return(order.name, items, posting_date=date)
 
 

@@ -1,0 +1,180 @@
+"""Integration tests: the COD order life cycle on a real ERPNext site.
+
+Run: bench --site <site> run-tests --module dz_cod.tests.test_order_flow
+"""
+
+import frappe
+from frappe.model.workflow import WorkflowTransitionError, get_transitions
+from frappe.tests import IntegrationTestCase
+
+from dz_cod.cod import states as S
+from dz_cod.cod.stock import inspect_return
+from dz_cod.tests import helpers as h
+
+
+class TestShippingRate(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		h.setup_fixtures()
+
+	def test_home_delivery_rate_is_added_to_the_total(self):
+		order = h.make_order(qty=2)
+		self.assertEqual(order.dz_shipping_charge, 400)
+		self.assertEqual(order.dz_cod_amount, 2 * h.ITEM_PRICE + 400)
+		shipping_rows = [t for t in order.taxes if t.charge_type == "Actual"]
+		self.assertEqual(len(shipping_rows), 1)
+		self.assertEqual(shipping_rows[0].tax_amount, 400)
+
+	def test_stop_desk_rate(self):
+		order = h.make_order(dz_delivery_type="Stop desk")
+		self.assertEqual(order.dz_shipping_charge, 250)
+
+	def test_rate_follows_a_change_of_wilaya(self):
+		order = h.make_order()
+		order.dz_wilaya = "31 - Oran"
+		order.save()
+		oran_rate = frappe.db.get_value("DZ Wilaya", "31 - Oran", "home_rate")
+		self.assertEqual(order.dz_shipping_charge, oran_rate)
+		self.assertEqual(len([t for t in order.taxes if t.charge_type == "Actual"]), 1)
+
+	def test_manual_rate_is_kept_and_zero_removes_the_line(self):
+		order = h.make_order(dz_manual_shipping=1, dz_shipping_charge=0)
+		self.assertEqual(order.dz_shipping_charge, 0)
+		self.assertEqual(order.dz_cod_amount, h.ITEM_PRICE)
+		self.assertFalse([t for t in order.taxes if t.charge_type == "Actual"])
+
+	def test_wilaya_not_delivered(self):
+		frappe.db.set_value("DZ Wilaya", "11 - Tamanrasset", "enabled", 0)
+		frappe.clear_document_cache("DZ Wilaya", "11 - Tamanrasset")
+		with self.assertRaises(frappe.ValidationError):
+			h.make_order(dz_wilaya="11 - Tamanrasset")
+
+
+class TestConfirmation(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		h.setup_fixtures()
+
+	def test_confirm_reserves_stock(self):
+		reserved_before = h.bin_qty(h.main_warehouse(), "reserved_qty")
+		order = h.act(h.make_order(qty=3), S.ACTION_CONFIRM)
+		self.assertEqual(order.workflow_state, S.CONFIRMED)
+		self.assertEqual(order.docstatus, 1)
+		self.assertEqual(h.bin_qty(h.main_warehouse(), "reserved_qty"), reserved_before + 3)
+		self.assertEqual(order.dz_courier_fee, 350)  # from the wilaya rate table
+		self.assertTrue(order.dz_confirmed_on)
+
+	def test_cannot_confirm_without_valid_phone(self):
+		order = h.make_order(dz_phone="12")
+		with self.assertRaises(frappe.ValidationError):
+			h.act(order, S.ACTION_CONFIRM)
+
+	def test_cannot_confirm_home_delivery_without_address(self):
+		# An empty address is re-filled from the customer: use a customer without one
+		frappe.db.set_value("Customer", h.CUSTOMER, "dz_address", None)
+		order = h.make_order(dz_address="")
+		with self.assertRaises(frappe.ValidationError):
+			h.act(order, S.ACTION_CONFIRM)
+
+	def test_block_confirmation_when_stock_is_short(self):
+		frappe.db.set_single_value("COD Settings", "block_confirmation_without_stock", 1)
+		frappe.clear_document_cache("COD Settings", "COD Settings")
+		order = h.make_order(qty=h.STOCK_QTY + 50)
+		with self.assertRaises(frappe.ValidationError):
+			h.act(order, S.ACTION_CONFIRM)
+		frappe.db.set_single_value("COD Settings", "block_confirmation_without_stock", 0)
+		frappe.clear_document_cache("COD Settings", "COD Settings")
+
+	def test_unanswered_calls_are_counted_and_limited(self):
+		order = h.make_order()
+		order = h.act(order, S.ACTION_NO_ANSWER, S.ACTION_NO_ANSWER, S.ACTION_NO_ANSWER)
+		self.assertEqual(order.workflow_state, S.UNREACHABLE)
+		self.assertEqual(order.dz_call_attempts, 3)
+		# Maximum reached (3): the button is gone, only Confirmer / Annuler remain
+		actions = {t.action for t in get_transitions(order)}
+		self.assertNotIn(S.ACTION_NO_ANSWER, actions)
+		with self.assertRaises(WorkflowTransitionError):
+			h.act(order, S.ACTION_NO_ANSWER)
+		self.assertEqual(h.act(order, S.ACTION_CONFIRM).workflow_state, S.CONFIRMED)
+
+	def test_cancel_a_draft_order(self):
+		order = h.act(h.make_order(), S.ACTION_CANCEL)
+		self.assertEqual(order.workflow_state, S.CANCELLED)
+		self.assertEqual(order.docstatus, 0)
+
+	def test_cancel_after_confirmation_releases_stock(self):
+		reserved_before = h.bin_qty(h.main_warehouse(), "reserved_qty")
+		order = h.act(h.make_order(qty=2), S.ACTION_CONFIRM, S.ACTION_PREPARE, S.ACTION_CANCEL)
+		self.assertEqual(order.workflow_state, S.CANCELLED_AFTER_CONFIRMATION)
+		self.assertEqual(order.docstatus, 2)
+		self.assertEqual(h.bin_qty(h.main_warehouse(), "reserved_qty"), reserved_before)
+
+	def test_illegal_jump_is_refused(self):
+		order = h.make_order()
+		with self.assertRaises(WorkflowTransitionError):
+			h.act(order, S.ACTION_SHIP)  # cannot ship an order nobody confirmed
+
+
+class TestShipmentAndReturn(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		h.setup_fixtures()
+
+	def ship(self, qty=1, courier=h.MOCK_COURIER):
+		order = h.make_order(qty=qty, courier=courier)
+		return h.act(order, S.ACTION_CONFIRM, S.ACTION_PREPARE, S.ACTION_SHIP)
+
+	def test_ship_creates_delivery_note_and_takes_stock_out(self):
+		stock_before = h.bin_qty(h.main_warehouse())
+		reserved_before = h.bin_qty(h.main_warehouse(), "reserved_qty")
+		order = self.ship(qty=2)
+
+		self.assertEqual(order.workflow_state, S.SHIPPED)
+		self.assertEqual(order.dz_tracking_number, f"MOCK-{order.name}")  # given by the mock courier
+		dn = frappe.get_doc("Delivery Note", order.dz_delivery_note)
+		self.assertEqual(dn.docstatus, 1)
+		self.assertEqual(dn.transporter, h.MOCK_COURIER)
+		self.assertEqual(dn.lr_no, order.dz_tracking_number)
+		self.assertEqual(h.bin_qty(h.main_warehouse()), stock_before - 2)
+		self.assertEqual(h.bin_qty(h.main_warehouse(), "reserved_qty"), reserved_before)
+
+	def test_manual_courier_needs_a_tracking_number(self):
+		order = h.make_order(courier=h.MANUAL_COURIER)
+		order = h.act(order, S.ACTION_CONFIRM, S.ACTION_PREPARE)
+		with self.assertRaises(frappe.ValidationError):
+			h.act(order, S.ACTION_SHIP)
+
+		frappe.db.set_value("Sales Order", order.name, "dz_tracking_number", "YAL-123456")
+		order = h.act(order, S.ACTION_SHIP)
+		self.assertEqual(order.workflow_state, S.SHIPPED)
+
+	def test_delivery_sets_the_date(self):
+		order = h.act(self.ship(), S.ACTION_DELIVER)
+		self.assertEqual(order.workflow_state, S.DELIVERED)
+		self.assertTrue(order.dz_delivered_on)
+
+	def test_return_goes_to_returns_warehouse_then_inspection(self):
+		returns_before = h.bin_qty(h.returns_warehouse())
+		main_before = h.bin_qty(h.main_warehouse())
+		order = h.act(self.ship(qty=3), S.ACTION_RETURN)
+
+		self.assertEqual(order.workflow_state, S.RETURNED)
+		self.assertEqual(order.status, "Closed")  # never reserves stock again
+		self.assertEqual(h.bin_qty(h.returns_warehouse()), returns_before + 3)
+		self.assertEqual(h.bin_qty(h.main_warehouse()), main_before - 3)
+
+		# Wrong total (2 instead of 3 pieces) is refused
+		with self.assertRaises(frappe.ValidationError):
+			inspect_return(order.name, [{"item_code": h.ITEM, "good_qty": 2, "damaged_qty": 0}])
+
+		inspect_return(order.name, [{"item_code": h.ITEM, "good_qty": 2, "damaged_qty": 1}])
+		self.assertEqual(h.bin_qty(h.returns_warehouse()), returns_before)  # returns shelf emptied
+		self.assertEqual(h.bin_qty(h.main_warehouse()), main_before - 1)  # 2 back, 1 written off
+		self.assertTrue(frappe.db.get_value("Sales Order", order.name, "dz_return_inspected"))
+
+		# A second inspection of the same parcel is refused
+		with self.assertRaises(frappe.ValidationError):
+			inspect_return(order.name, [{"item_code": h.ITEM, "good_qty": 3, "damaged_qty": 0}])

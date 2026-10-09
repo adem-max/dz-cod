@@ -9,6 +9,9 @@ We only CREATE them, DISABLED, with a placeholder URL. To use them:
 After that we never touch them again (your URL and settings are kept on
 `bench migrate`). Example payloads: docs/WEBHOOKS.md.
 
+Note: in the template write doc["items"], not doc.items (that would be the
+Python dictionary method "items" and the webhook would fail).
+
 How the condition works: `doc.has_value_changed("workflow_state")` is true
 only during the save where the state changed, so the webhook fires once per
 move, not every time someone edits the order.
@@ -39,7 +42,7 @@ PAYLOAD = """{
   "courier": {{ (doc.dz_courier or '') | tojson }},
   "tracking_number": "{{ doc.dz_tracking_number or '' }}",
   "call_attempts": {{ doc.dz_call_attempts or 0 }},
-  "items": [{% for row in doc.items %}
+  "items": [{% for row in doc["items"] %}
     {"item_code": {{ row.item_code | tojson }}, "item_name": {{ row.item_name | tojson }}, "qty": {{ row.qty }}, "rate": {{ row.rate }}}{% if not loop.last %},{% endif %}{% endfor %}
   ]
 }"""

@@ -163,7 +163,9 @@ SALES_ORDER_FIELDS = [
 	after_submit_readonly(
 		"dz_delivery_note", "Bon de livraison", "Link", "dz_courier_fee", options="Delivery Note"
 	),
-	after_submit_readonly("dz_return_note", "Bon de retour", "Link", "dz_delivery_note", options="Delivery Note"),
+	after_submit_readonly(
+		"dz_return_note", "Bon de retour", "Link", "dz_delivery_note", options="Delivery Note"
+	),
 	after_submit_readonly("dz_return_inspected", "Retour inspecté", "Check", "dz_return_note"),
 	after_submit_readonly(
 		"dz_settlement", "Versement", "Link", "dz_return_inspected", options="Courier Settlement"

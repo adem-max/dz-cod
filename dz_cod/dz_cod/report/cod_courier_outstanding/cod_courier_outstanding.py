@@ -64,7 +64,11 @@ def get_disputes():
 		""",
 		as_dict=True,
 	)
-	return {line.sales_order: line.settlement for line in lines if not is_paid(line.status, line.accept_difference)}
+	return {
+		line.sales_order: line.settlement
+		for line in lines
+		if not is_paid(line.status, line.accept_difference)
+	}
 
 
 # ------------------------------------------------------------ summary view
@@ -72,7 +76,13 @@ def get_disputes():
 
 def get_summary_columns():
 	return [
-		{"fieldname": "courier", "label": _("Transporteur"), "fieldtype": "Link", "options": "Supplier", "width": 200},
+		{
+			"fieldname": "courier",
+			"label": _("Transporteur"),
+			"fieldtype": "Link",
+			"options": "Supplier",
+			"width": 200,
+		},
 		{"fieldname": "delivered_count", "label": _("Livrées non réglées"), "fieldtype": "Int", "width": 140},
 		{"fieldname": "delivered_net", "label": _("Montant dû (net)"), "fieldtype": "Currency", "width": 140},
 		{"fieldname": "disputed_count", "label": _("Dont en litige"), "fieldtype": "Int", "width": 110},
@@ -89,8 +99,16 @@ def get_summary_rows(orders):
 	for order in orders:
 		row = rows.setdefault(
 			order.courier,
-			{"courier": order.courier, "delivered_count": 0, "delivered_net": 0, "disputed_count": 0,
-			 "disputed_net": 0, "oldest": None, "road_count": 0, "road_net": 0},
+			{
+				"courier": order.courier,
+				"delivered_count": 0,
+				"delivered_net": 0,
+				"disputed_count": 0,
+				"disputed_net": 0,
+				"oldest": None,
+				"road_count": 0,
+				"road_net": 0,
+			},
 		)
 		if order.state == S.SHIPPED:
 			row["road_count"] += 1
@@ -115,8 +133,20 @@ def get_summary_rows(orders):
 
 def get_detail_columns():
 	return [
-		{"fieldname": "name", "label": _("Commande"), "fieldtype": "Link", "options": "Sales Order", "width": 170},
-		{"fieldname": "courier", "label": _("Transporteur"), "fieldtype": "Link", "options": "Supplier", "width": 170},
+		{
+			"fieldname": "name",
+			"label": _("Commande"),
+			"fieldtype": "Link",
+			"options": "Sales Order",
+			"width": 170,
+		},
+		{
+			"fieldname": "courier",
+			"label": _("Transporteur"),
+			"fieldtype": "Link",
+			"options": "Supplier",
+			"width": 170,
+		},
 		{"fieldname": "dz_tracking_number", "label": _("N° de suivi"), "fieldtype": "Data", "width": 190},
 		{"fieldname": "customer_name", "label": _("Client"), "fieldtype": "Data", "width": 160},
 		{"fieldname": "wilaya", "label": _("Wilaya"), "fieldtype": "Data", "width": 130},
@@ -126,7 +156,13 @@ def get_detail_columns():
 		{"fieldname": "dz_cod_amount", "label": _("À encaisser"), "fieldtype": "Currency", "width": 120},
 		{"fieldname": "dz_courier_fee", "label": _("Frais prévus"), "fieldtype": "Currency", "width": 110},
 		{"fieldname": "net", "label": _("Net dû"), "fieldtype": "Currency", "width": 120},
-		{"fieldname": "dispute", "label": _("En litige (versement)"), "fieldtype": "Link", "options": "Courier Settlement", "width": 160},
+		{
+			"fieldname": "dispute",
+			"label": _("En litige (versement)"),
+			"fieldtype": "Link",
+			"options": "Courier Settlement",
+			"width": 160,
+		},
 	]
 
 
@@ -140,7 +176,22 @@ def get_summary(orders):
 	delivered = [o for o in orders if o.state == S.DELIVERED]
 	disputed = [o for o in delivered if o.dispute]
 	return [
-		{"label": _("Montant dû (net)"), "value": sum(flt(o.net) for o in delivered), "datatype": "Currency", "indicator": "orange"},
-		{"label": _("Dont en litige"), "value": sum(flt(o.net) for o in disputed), "datatype": "Currency", "indicator": "red"},
-		{"label": _("Sur la route"), "value": sum(flt(o.net) for o in orders if o.state == S.SHIPPED), "datatype": "Currency", "indicator": "blue"},
+		{
+			"label": _("Montant dû (net)"),
+			"value": sum(flt(o.net) for o in delivered),
+			"datatype": "Currency",
+			"indicator": "orange",
+		},
+		{
+			"label": _("Dont en litige"),
+			"value": sum(flt(o.net) for o in disputed),
+			"datatype": "Currency",
+			"indicator": "red",
+		},
+		{
+			"label": _("Sur la route"),
+			"value": sum(flt(o.net) for o in orders if o.state == S.SHIPPED),
+			"datatype": "Currency",
+			"indicator": "blue",
+		},
 	]

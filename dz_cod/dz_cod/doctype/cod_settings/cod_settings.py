@@ -15,7 +15,9 @@ class CODSettings(Document):
 		for fieldname in ("main_warehouse", "returns_warehouse"):
 			warehouse = self.get(fieldname)
 			if frappe.db.get_value("Warehouse", warehouse, "company") != self.company:
-				frappe.throw(_("L'entrepôt {0} n'appartient pas à la société {1}.").format(warehouse, self.company))
+				frappe.throw(
+					_("L'entrepôt {0} n'appartient pas à la société {1}.").format(warehouse, self.company)
+				)
 
 		if self.main_warehouse == self.returns_warehouse:
 			frappe.throw(_("L'entrepôt des retours doit être différent de l'entrepôt principal."))

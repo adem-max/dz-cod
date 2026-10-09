@@ -33,10 +33,28 @@ def get_columns(group_by):
 	return [
 		{"fieldname": "name", "label": group_by, "fieldtype": "Data", "width": 220},
 		{"fieldname": "label", "label": _("Désignation"), "fieldtype": "Data", "width": 220},
-		{"fieldname": "delivered", "label": _("Livrées ({0})").format(unit), "fieldtype": "Float", "precision": 0, "width": 130},
-		{"fieldname": "returned", "label": _("Retournées ({0})").format(unit), "fieldtype": "Float", "precision": 0, "width": 140},
+		{
+			"fieldname": "delivered",
+			"label": _("Livrées ({0})").format(unit),
+			"fieldtype": "Float",
+			"precision": 0,
+			"width": 130,
+		},
+		{
+			"fieldname": "returned",
+			"label": _("Retournées ({0})").format(unit),
+			"fieldtype": "Float",
+			"precision": 0,
+			"width": 140,
+		},
 		{"fieldname": "return_rate", "label": _("Taux de retour"), "fieldtype": "Percent", "width": 120},
-		{"fieldname": "in_transit", "label": _("En transit ({0})").format(unit), "fieldtype": "Float", "precision": 0, "width": 130},
+		{
+			"fieldname": "in_transit",
+			"label": _("En transit ({0})").format(unit),
+			"fieldtype": "Float",
+			"precision": 0,
+			"width": 130,
+		},
 	]
 
 
@@ -93,7 +111,9 @@ def get_rows(filters, group_by):
 			row["delivered"] += line.qty
 
 	for row in rows.values():
-		row["label"] = row["name"] if group_by == BY_WILAYA else frappe.db.get_value("Item", row["name"], "item_name")
+		row["label"] = (
+			row["name"] if group_by == BY_WILAYA else frappe.db.get_value("Item", row["name"], "item_name")
+		)
 		finished = row["delivered"] + row["returned"]
 		row["return_rate"] = round(100 * row["returned"] / finished, 1) if finished else 0
 

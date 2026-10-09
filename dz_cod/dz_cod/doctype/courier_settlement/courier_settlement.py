@@ -23,7 +23,14 @@ from frappe.utils import flt
 from dz_cod.cod import settlement as rules
 from dz_cod.cod import states as S
 
-ORDER_FIELDS = ["name", "workflow_state", "dz_courier", "dz_cod_amount", "dz_courier_fee", "dz_tracking_number"]
+ORDER_FIELDS = [
+	"name",
+	"workflow_state",
+	"dz_courier",
+	"dz_cod_amount",
+	"dz_courier_fee",
+	"dz_tracking_number",
+]
 
 
 class CourierSettlement(Document):
@@ -64,7 +71,9 @@ class CourierSettlement(Document):
 		for line in self.items:
 			order = self.find_order(line)
 			if order and order.name in seen_orders:
-				frappe.throw(_("Ligne {0} : la commande {1} apparaît deux fois.").format(line.idx, order.name))
+				frappe.throw(
+					_("Ligne {0} : la commande {1} apparaît deux fois.").format(line.idx, order.name)
+				)
 
 			line.net_amount = flt(line.collected_amount) - flt(line.courier_fee)
 			if order:
@@ -131,7 +140,7 @@ class CourierSettlement(Document):
 		}
 		if in_this_settlement:
 			filters["name"] = ["not in", in_this_settlement]
-		return frappe.get_all("Sales Order", filters=filters, fields=ORDER_FIELDS + ["dz_delivered_on"])
+		return frappe.get_all("Sales Order", filters=filters, fields=ORDER_FIELDS)
 
 	@frappe.whitelist()
 	def load_delivered_orders(self):

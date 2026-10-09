@@ -14,10 +14,10 @@ Planning analogy:
 """
 
 import frappe
-from frappe import _
-from frappe.utils import flt, today
 from erpnext.selling.doctype.sales_order.sales_order import make_delivery_note
 from erpnext.stock.doctype.delivery_note.delivery_note import make_sales_return
+from frappe import _
+from frappe.utils import flt, today
 
 from dz_cod.cod import states as S
 from dz_cod.dz_cod.doctype.cod_settings.cod_settings import get_settings
@@ -48,9 +48,7 @@ def check_available_stock(order):
 		) or (0, 0)
 		available = flt(actual) - flt(reserved)
 		if available < qty:
-			problems.append(
-				_("{0} : besoin {1}, disponible {2}").format(item_code, qty, max(available, 0))
-			)
+			problems.append(_("{0} : besoin {1}, disponible {2}").format(item_code, qty, max(available, 0)))
 	return problems
 
 
@@ -100,7 +98,9 @@ def get_returned_items(sales_order):
 		return []
 	ret = frappe.get_doc("Delivery Note", order.dz_return_note)
 	# Return notes have negative quantities: turn them positive
-	return [{"item_code": row.item_code, "item_name": row.item_name, "qty": abs(row.qty)} for row in ret.items]
+	return [
+		{"item_code": row.item_code, "item_name": row.item_name, "qty": abs(row.qty)} for row in ret.items
+	]
 
 
 @frappe.whitelist()
@@ -153,9 +153,12 @@ def inspect_return(sales_order, items, posting_date=None):
 		)
 
 	order.db_set("dz_return_inspected", 1)
-	order.add_comment("Comment", _("Retour inspecté : {0} remis en stock, {1} mis au rebut.").format(
-		sum(flt(r.get("good_qty")) for r in items), sum(flt(r.get("damaged_qty")) for r in items)
-	))
+	order.add_comment(
+		"Comment",
+		_("Retour inspecté : {0} remis en stock, {1} mis au rebut.").format(
+			sum(flt(r.get("good_qty")) for r in items), sum(flt(r.get("damaged_qty")) for r in items)
+		),
+	)
 
 
 def make_stock_entry(order, entry_type, lines, source, target, posting_date=None):
@@ -166,7 +169,9 @@ def make_stock_entry(order, entry_type, lines, source, target, posting_date=None
 	entry.dz_sales_order = order.name
 	set_posting_date(entry, posting_date)
 	for item_code, qty in lines:
-		entry.append("items", {"item_code": item_code, "qty": qty, "s_warehouse": source, "t_warehouse": target})
+		entry.append(
+			"items", {"item_code": item_code, "qty": qty, "s_warehouse": source, "t_warehouse": target}
+		)
 	entry.insert()
 	entry.submit()
 	return entry.name

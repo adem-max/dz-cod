@@ -78,7 +78,8 @@ def get_chart(rows):
 		"data": {
 			"labels": [str(row["date"]) for row in rows],
 			"datasets": [
-				{"name": state, "values": [row.get(scrub(state), 0) for row in rows]} for state in S.ALL_STATES
+				{"name": state, "values": [row.get(scrub(state), 0) for row in rows]}
+				for state in S.ALL_STATES
 			],
 		},
 		"type": "bar",
@@ -91,12 +92,24 @@ def get_summary(rows):
 		return sum(row.get(scrub(state), 0) for row in rows for state in states)
 
 	all_orders = sum(row["total"] for row in rows)
-	confirmed = total(S.CONFIRMED, S.PREPARED, S.SHIPPED, S.DELIVERED, S.SETTLED, S.RETURNED, S.CANCELLED_AFTER_CONFIRMATION)
+	confirmed = total(
+		S.CONFIRMED, S.PREPARED, S.SHIPPED, S.DELIVERED, S.SETTLED, S.RETURNED, S.CANCELLED_AFTER_CONFIRMATION
+	)
 	cancelled = total(S.CANCELLED, S.CANCELLED_AFTER_CONFIRMATION)
 	return [
 		{"label": _("Commandes"), "value": all_orders, "datatype": "Int", "indicator": "blue"},
-		{"label": _("Taux de confirmation"), "value": percent(confirmed, all_orders), "datatype": "Percent", "indicator": "green"},
-		{"label": _("Taux d'annulation"), "value": percent(cancelled, all_orders), "datatype": "Percent", "indicator": "red"},
+		{
+			"label": _("Taux de confirmation"),
+			"value": percent(confirmed, all_orders),
+			"datatype": "Percent",
+			"indicator": "green",
+		},
+		{
+			"label": _("Taux d'annulation"),
+			"value": percent(cancelled, all_orders),
+			"datatype": "Percent",
+			"indicator": "red",
+		},
 	]
 
 
