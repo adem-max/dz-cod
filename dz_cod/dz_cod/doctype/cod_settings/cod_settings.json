@@ -1,0 +1,149 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "company",
+  "main_warehouse",
+  "returns_warehouse",
+  "column_break_stock",
+  "shipping_income_account",
+  "block_confirmation_without_stock",
+  "orders_section",
+  "max_call_attempts",
+  "column_break_orders",
+  "settlement_tolerance",
+  "courier_section",
+  "default_courier",
+  "column_break_courier",
+  "auto_sync_courier_status"
+ ],
+ "fields": [
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Société",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "description": "Entrepôt d'où partent les commandes.",
+   "fieldname": "main_warehouse",
+   "fieldtype": "Link",
+   "label": "Entrepôt principal",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "description": "Les colis retournés arrivent ici, en attente d'inspection.",
+   "fieldname": "returns_warehouse",
+   "fieldtype": "Link",
+   "label": "Entrepôt des retours",
+   "options": "Warehouse",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_stock",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Compte de produits où sont enregistrés les frais de livraison facturés aux clients.",
+   "fieldname": "shipping_income_account",
+   "fieldtype": "Link",
+   "label": "Compte des frais de livraison",
+   "options": "Account",
+   "reqd": 1
+  },
+  {
+   "default": "0",
+   "description": "Si coché, une commande ne peut pas être confirmée sans stock disponible. Sinon, un simple avertissement s'affiche (utile si vous imprimez à la demande).",
+   "fieldname": "block_confirmation_without_stock",
+   "fieldtype": "Check",
+   "label": "Bloquer la confirmation si stock insuffisant"
+  },
+  {
+   "fieldname": "orders_section",
+   "fieldtype": "Section Break",
+   "label": "Commandes et versements"
+  },
+  {
+   "default": "3",
+   "description": "Après ce nombre d'appels sans réponse, le bouton « Pas de réponse » disparaît : il faut confirmer ou annuler.",
+   "fieldname": "max_call_attempts",
+   "fieldtype": "Int",
+   "label": "Nombre maximum d'appels",
+   "non_negative": 1
+  },
+  {
+   "fieldname": "column_break_orders",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Écart accepté automatiquement entre le montant attendu et le montant versé par le transporteur.",
+   "fieldname": "settlement_tolerance",
+   "fieldtype": "Currency",
+   "label": "Tolérance d'écart (DA)",
+   "non_negative": 1,
+   "options": "DZD"
+  },
+  {
+   "fieldname": "courier_section",
+   "fieldtype": "Section Break",
+   "label": "Transporteur"
+  },
+  {
+   "fieldname": "default_courier",
+   "fieldtype": "Link",
+   "label": "Transporteur par défaut",
+   "options": "Supplier"
+  },
+  {
+   "fieldname": "column_break_courier",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "0",
+   "description": "Chaque heure, demander au transporteur le statut des colis expédiés et passer automatiquement les commandes en Livrée ou Retournée.",
+   "fieldname": "auto_sync_courier_status",
+   "fieldtype": "Check",
+   "label": "Synchroniser les statuts automatiquement"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "issingle": 1,
+ "links": [],
+ "modified": "2026-10-09 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "DZ COD",
+ "name": "COD Settings",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "print": 1,
+   "read": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Sales User"
+  },
+  {
+   "read": 1,
+   "role": "Stock User"
+  },
+  {
+   "read": 1,
+   "role": "Accounts User"
+  }
+ ],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}
