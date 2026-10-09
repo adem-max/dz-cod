@@ -83,11 +83,25 @@ bench --site test.localhost set-config allow_tests 1
 
 ```bash
 cd ~/frappe-bench
+bench use demo.localhost                      # choose WHICH site the development server shows
 bench start                                   # web server, workers, scheduler, redis; Ctrl+C to stop
 ```
 
-Open http://demo.localhost:8000 in Firefox on Fedora (any `*.localhost`
-name points to your own machine). Log in as `Administrator` / `admin`.
+Open http://demo.localhost:8000 in Firefox on Fedora. Log in as
+`Administrator` / `admin`.
+
+**Important: on your laptop, `bench start` shows only one site, the one
+chosen with `bench use`, whatever name you type in the address bar.**
+(In production, nginx picks the site from the domain name; the development
+server does not.) To show another site, for example your friend's:
+
+```bash
+# Ctrl+C in the bench start terminal, then:
+bench use friend.localhost
+bench start
+```
+
+Check which site is shown: `grep default_site sites/common_site_config.json`.
 
 ## 6. Run the tests
 
@@ -124,3 +138,4 @@ Commit and push from `~/frappe-bench/apps/dz_cod` like any git repository.
 - `erpnext not found under frappe or erpnext GitHub accounts` → use the full URL `https://github.com/frappe/erpnext`.
 - `Too many queued background jobs` → `bench start` was not running during a big load; run `bench worker --queue default,short,long --burst` once to empty the queue.
 - The page is blank after a JS change → `bench build --app dz_cod` and hard-refresh.
+- You see the wrong data (other company, other orders) → the development server shows the `bench use` site, not the one in the address bar (section 5).
