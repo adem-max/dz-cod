@@ -1,0 +1,135 @@
+{
+ "actions": [],
+ "creation": "2026-10-09 10:00:00.000000",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "tracking_number",
+  "sales_order",
+  "customer_name",
+  "collected_amount",
+  "courier_fee",
+  "net_amount",
+  "column_break_expected",
+  "expected_amount",
+  "expected_fee",
+  "difference",
+  "status",
+  "accept_difference",
+  "note"
+ ],
+ "fields": [
+  {
+   "columns": 2,
+   "fieldname": "tracking_number",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "N° de suivi"
+  },
+  {
+   "columns": 2,
+   "description": "Laisser vide : retrouvée automatiquement par le n° de suivi.",
+   "fieldname": "sales_order",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Commande",
+   "options": "Sales Order"
+  },
+  {
+   "fetch_from": "sales_order.customer_name",
+   "fieldname": "customer_name",
+   "fieldtype": "Data",
+   "label": "Client",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "description": "Montant que le transporteur dit avoir encaissé auprès du client.",
+   "fieldname": "collected_amount",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Encaissé",
+   "options": "DZD"
+  },
+  {
+   "columns": 1,
+   "description": "Frais retenus par le transporteur pour ce colis.",
+   "fieldname": "courier_fee",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Frais",
+   "options": "DZD"
+  },
+  {
+   "fieldname": "net_amount",
+   "fieldtype": "Currency",
+   "label": "Net versé",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_expected",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "expected_amount",
+   "fieldtype": "Currency",
+   "label": "Montant attendu",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "expected_fee",
+   "fieldtype": "Currency",
+   "label": "Frais prévus",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "description": "Net versé moins net attendu. Négatif = il manque de l'argent.",
+   "fieldname": "difference",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Écart",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Statut",
+   "options": "\nOK\nÉcart\nInconnue\nDéjà réglée\nInvalide",
+   "read_only": 1
+  },
+  {
+   "columns": 1,
+   "default": "0",
+   "description": "Cocher pour accepter l'écart : la commande sera quand même marquée Réglée.",
+   "fieldname": "accept_difference",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "label": "Accepter"
+  },
+  {
+   "fieldname": "note",
+   "fieldtype": "Small Text",
+   "label": "Note"
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "istable": 1,
+ "links": [],
+ "modified": "2026-10-09 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "DZ COD",
+ "name": "Courier Settlement Item",
+ "owner": "Administrator",
+ "permissions": [],
+ "sort_field": "modified",
+ "sort_order": "DESC",
+ "states": []
+}

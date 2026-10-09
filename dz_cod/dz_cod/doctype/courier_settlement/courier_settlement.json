@@ -1,0 +1,255 @@
+{
+ "actions": [],
+ "autoname": "format:VERS-{YYYY}-{#####}",
+ "creation": "2026-10-09 10:00:00.000000",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "courier",
+  "company",
+  "column_break_header",
+  "posting_date",
+  "reference",
+  "amount_received",
+  "lines_section",
+  "items",
+  "summary_section",
+  "paid_count",
+  "paid_amount",
+  "column_break_disputed",
+  "disputed_count",
+  "disputed_amount",
+  "column_break_missing",
+  "missing_count",
+  "missing_amount",
+  "totals_section",
+  "total_collected",
+  "total_fees",
+  "column_break_totals",
+  "total_net",
+  "difference_received",
+  "more_section",
+  "remarks",
+  "amended_from"
+ ],
+ "fields": [
+  {
+   "fieldname": "courier",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Transporteur",
+   "options": "Supplier",
+   "reqd": 1
+  },
+  {
+   "fieldname": "company",
+   "fieldtype": "Link",
+   "label": "Société",
+   "options": "Company",
+   "reqd": 1
+  },
+  {
+   "fieldname": "column_break_header",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "Today",
+   "fieldname": "posting_date",
+   "fieldtype": "Date",
+   "in_list_view": 1,
+   "label": "Date du versement",
+   "reqd": 1
+  },
+  {
+   "description": "Référence du relevé ou du virement du transporteur.",
+   "fieldname": "reference",
+   "fieldtype": "Data",
+   "label": "Référence transporteur"
+  },
+  {
+   "description": "Argent réellement reçu (virement, chèque ou espèces).",
+   "fieldname": "amount_received",
+   "fieldtype": "Currency",
+   "in_list_view": 1,
+   "label": "Montant reçu",
+   "options": "DZD"
+  },
+  {
+   "description": "Une ligne par colis du relevé du transporteur. Bouton « Charger les commandes livrées » pour pré-remplir, ou « Téléverser » pour importer un fichier CSV.",
+   "fieldname": "lines_section",
+   "fieldtype": "Section Break",
+   "label": "Colis du relevé"
+  },
+  {
+   "allow_bulk_edit": 1,
+   "fieldname": "items",
+   "fieldtype": "Table",
+   "label": "Lignes",
+   "options": "Courier Settlement Item"
+  },
+  {
+   "fieldname": "summary_section",
+   "fieldtype": "Section Break",
+   "label": "Résumé"
+  },
+  {
+   "fieldname": "paid_count",
+   "fieldtype": "Int",
+   "label": "Colis réglés",
+   "read_only": 1
+  },
+  {
+   "fieldname": "paid_amount",
+   "fieldtype": "Currency",
+   "label": "Montant réglé",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_disputed",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Lignes avec un écart non accepté, un n° inconnu ou une commande invalide.",
+   "fieldname": "disputed_count",
+   "fieldtype": "Int",
+   "label": "Colis en litige",
+   "read_only": 1
+  },
+  {
+   "fieldname": "disputed_amount",
+   "fieldtype": "Currency",
+   "label": "Montant en litige",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_missing",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Commandes livrées par ce transporteur jusqu'à la date du versement mais absentes de ce relevé et pas encore réglées.",
+   "fieldname": "missing_count",
+   "fieldtype": "Int",
+   "label": "Colis livrés manquants",
+   "read_only": 1
+  },
+  {
+   "fieldname": "missing_amount",
+   "fieldtype": "Currency",
+   "label": "Montant manquant",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "totals_section",
+   "fieldtype": "Section Break",
+   "label": "Totaux du relevé"
+  },
+  {
+   "fieldname": "total_collected",
+   "fieldtype": "Currency",
+   "label": "Total encaissé",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "total_fees",
+   "fieldtype": "Currency",
+   "label": "Total des frais",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "column_break_totals",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "total_net",
+   "fieldtype": "Currency",
+   "label": "Total net du relevé",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "description": "Montant reçu moins total net du relevé. Doit être 0.",
+   "fieldname": "difference_received",
+   "fieldtype": "Currency",
+   "label": "Écart reçu / relevé",
+   "options": "DZD",
+   "read_only": 1
+  },
+  {
+   "fieldname": "more_section",
+   "fieldtype": "Section Break",
+   "label": "Remarques"
+  },
+  {
+   "fieldname": "remarks",
+   "fieldtype": "Small Text",
+   "label": "Remarques"
+  },
+  {
+   "fieldname": "amended_from",
+   "fieldtype": "Link",
+   "label": "Amended From",
+   "no_copy": 1,
+   "options": "Courier Settlement",
+   "print_hide": 1,
+   "read_only": 1,
+   "search_index": 1
+  }
+ ],
+ "index_web_pages_for_search": 0,
+ "is_submittable": 1,
+ "links": [],
+ "modified": "2026-10-09 10:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "DZ COD",
+ "name": "Courier Settlement",
+ "naming_rule": "Expression",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts User",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "amend": 1,
+   "cancel": 1,
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "Accounts Manager",
+   "share": 1,
+   "submit": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "report": 1,
+   "role": "Sales Manager"
+  }
+ ],
+ "sort_field": "posting_date",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "courier",
+ "track_changes": 1
+}

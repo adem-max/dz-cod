@@ -1,0 +1,82 @@
+"""Wipe the demo data so the loader can start again from a clean shop.
+
+    bench --site demo.localhost execute dz_cod.demo.wipe.run
+    bench --site demo.localhost execute dz_cod.demo.loader.load
+
+It cancels and deletes every transaction of the demo company (settlements,
+stock entries, delivery notes, orders), then the demo customers, couriers
+and items. The company, its warehouses and accounts and the COD Settings are
+kept (the loader reuses them).
+
+Even simpler, for a total reset, drop the demo site and create it again
+(see docs/DEMO.md).
+
+Refuses to run if the site contains orders of another company.
+"""
+
+import frappe
+
+from dz_cod.demo import data as D
+from dz_cod.demo.loader import check_site_is_for_demo
+
+
+def run():
+	check_site_is_for_demo()
+	company = {"company": D.COMPANY}
+
+	print("Versements...")
+	remove("Courier Settlement", company)
+
+	print("Mouvements de stock des inspections...")
+	remove("Stock Entry", dict(company, dz_sales_order=["is", "set"]))
+
+	print("Bons de retour puis bons de livraison...")
+	# Returned orders are "Closed": ERPNext refuses to touch their delivery notes until reopened
+	for name in frappe.get_all("Sales Order", filters=dict(company, status="Closed"), pluck="name"):
+		frappe.get_doc("Sales Order", name).update_status("Draft")
+	remove("Delivery Note", dict(company, is_return=1))
+	remove("Delivery Note", dict(company, is_return=0))
+
+	print("Commandes...")
+	remove("Sales Order", company)
+
+	print("Stock d'ouverture...")
+	remove("Stock Entry", company)
+	frappe.db.delete("Repost Item Valuation", company)
+
+	print("Clients, transporteurs, articles...")
+	for name in frappe.get_all("Customer", filters={"customer_group": D.CUSTOMER_GROUP}, pluck="name"):
+		frappe.delete_doc("Customer", name, force=True)
+	frappe.db.set_single_value("COD Settings", "default_courier", None)
+	for courier in D.COURIERS:
+		if frappe.db.exists("Supplier", courier):
+			frappe.delete_doc("Supplier", courier, force=True)
+	brand_items = {"brand": ["in", D.BRANDS]}
+	frappe.db.delete(
+		"Item Price", {"item_code": ["in", frappe.get_all("Item", filters=brand_items, pluck="name")]}
+	)
+	# Variants first, then templates (a template cannot go while it has variants)
+	for has_variants in (0, 1):
+		for filters in (
+			dict(brand_items, has_variants=has_variants),
+			{"item_code": ["like", "BLANK%"], "has_variants": has_variants},
+		):
+			for name in frappe.get_all("Item", filters=filters, pluck="name"):
+				frappe.delete_doc("Item", name, force=True)
+
+	frappe.db.commit()
+	print("Démo effacée. Relancez : bench --site <site> execute dz_cod.demo.loader.load")
+
+
+def remove(doctype, filters):
+	"""Cancel (if submitted) then delete every document matching the filters,
+	newest first so stock is always given back in the reverse order it moved."""
+	names = frappe.get_all(doctype, filters=filters, pluck="name", order_by="creation desc")
+	for name in names:
+		doc = frappe.get_doc(doctype, name)
+		if doc.docstatus == 1:
+			doc.flags.ignore_links = True
+			doc.cancel()
+	for name in names:
+		frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+	frappe.db.commit()
