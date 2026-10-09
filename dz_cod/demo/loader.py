@@ -45,6 +45,17 @@ SEED = 2026  # same seed = same demo every time
 # Event names used in the order stories (most are workflow actions)
 INSPECT = "Inspecter"
 
+# The newest orders arrived today. Their outcome is fixed so the demo always
+# shows every state: 3 not called yet, 2 unreachable, 1 confirmed.
+TODAY_ORDERS = [
+	[],
+	[],
+	[],
+	[S.ACTION_NO_ANSWER],
+	[S.ACTION_NO_ANSWER, S.ACTION_NO_ANSWER],
+	[S.ACTION_CONFIRM],
+]
+
 
 def load(return_rate=0.2, seed=SEED):
 	return_rate = float(return_rate)
@@ -490,6 +501,12 @@ def plan_orders(rng, customers, return_rate):
 	for number in range(1, NB_ORDERS + 1):
 		# More orders recently (the shop is growing)
 		age = int(rng.triangular(0, DAYS_OF_HISTORY, 0))
+		# The last few orders arrived today, with a fixed outcome (see TODAY_ORDERS)
+		today_outcome = (
+			TODAY_ORDERS[number - NB_ORDERS - 1] if number > NB_ORDERS - len(TODAY_ORDERS) else None
+		)
+		if today_outcome is not None:
+			age = 0
 		order_date = add_days(last_day, -age)
 		customer = rng.choice(customers)
 		lines = pick_lines(rng, catalogue, stock_left)
@@ -540,6 +557,8 @@ def plan_orders(rng, customers, return_rate):
 				else:
 					events.append((day, S.ACTION_DELIVER))
 
+		if today_outcome is not None:
+			story["events"] = events = [(last_day, action) for action in today_outcome]
 		story["events"] = [(date, action) for date, action in events if getdate(date) <= last_day]
 		if story["lines"]:
 			stories.append(story)

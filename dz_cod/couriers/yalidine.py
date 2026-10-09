@@ -1,3 +1,4 @@
+# UNTESTED: no call to the real Yalidine API was ever made (official docs not reachable).
 """Yalidine connector: DOCUMENTED STUB, NOT IMPLEMENTED.
 
 Why a stub?
