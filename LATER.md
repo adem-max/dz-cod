@@ -6,7 +6,7 @@ Roughly in order of value for a COD seller.
 ## Next phase candidates
 
 1. **Accounting of COD sales.** Create and submit a Sales Invoice when an order becomes "Livrée", and record the courier payout ("Réglée") as a Journal Entry: debit bank, debit "courier fees" expense, credit each customer's receivable against its invoice. Today revenue is not in the general ledger and delivered orders stay "To Bill".
-2. **Real courier connectors** (Yalidine, ZR Express, Maystro, Ecotrack-based couriers) once the official API documentation has been read from the client's account. The adapter interface is ready; see `dz_cod/couriers/yalidine.py`.
+2. **Real courier connectors**: Yalidine first (API known, plan ready), then ZR Express (get its official docs first), then Maystro / Ecotrack-based couriers. Step-by-step plan: `docs/COURIER_INTEGRATION.md`. Includes importing Yalidine's own prices into the wilaya list and its return fee / COD percentage in the settlement.
 3. **Order intake endpoint for n8n**: one whitelisted method that receives an order from Instagram, Facebook or the website, finds or creates the customer by phone, looks up prices, and creates the Sales Order. (ERPNext does not apply the price list on server-side inserts, so this method must do it.)
 4. **Commune master list** (1,541 communes, law 26-06) with the courier's own commune codes and stop desk offices per commune.
 5. **Customer phone checks**: warn when a new order's phone belongs to a customer with several refused parcels (blacklist), and detect duplicate customers by phone.
@@ -22,7 +22,7 @@ Roughly in order of value for a COD seller.
 
 ## Out of scope by request (do not build here)
 
-- Manufacturing for the print workshop (BOM: blank t-shirt + ink → printed t-shirt, work orders).
+- Manufacturing for the print workshop (BOM: blank t-shirt + ink → printed t-shirt, work orders). ERPNext's Manufacturing module is installed and untouched; when needed, start with a BOM per printed design and "Manufacture" stock entries from the Atelier warehouse to Stock principal, before considering work orders.
 - Full accounting beyond ERPNext defaults, payroll, POS.
 - A customer-facing website.
 - The n8n workflows themselves (the webhooks and their payloads are ready: `docs/WEBHOOKS.md`).

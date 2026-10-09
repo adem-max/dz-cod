@@ -16,7 +16,7 @@ courier hand-over, returns, and courier cash settlement ("Versement").
 | **Demo** | loaded on a fresh site in 2 min 20 s; second run changes nothing; wipe + reload checked. |
 | **Backup / restore** | backup of the demo site restored into a new site, data and encrypted secrets verified. |
 | **Not run** | production mode (nginx, supervisor, Let's Encrypt, firewall), off-site copy to a real cloud storage (the backup script was run with a local rclone remote), the Fedora/distrobox commands — they need a public server or a Fedora machine. Marked *(not run here)* in the docs. |
-| **Not implemented** | real courier API connector: the official docs of Yalidine / ZR Express / Maystro / Ecotrack could not be reached; `couriers/yalidine.py` is a documented stub (`# UNTESTED`, raises "not implemented"). See DECISIONS.md. |
+| **Not implemented** | real courier API connector: `couriers/yalidine.py` is a documented stub (`# UNTESTED`, raises "not implemented"). The Yalidine and ZR Express APIs have since been researched; the implementation plan is in docs/COURIER_INTEGRATION.md. |
 
 ## What you get
 
@@ -96,6 +96,7 @@ bench --site test.localhost run-tests --app dz_cod
 | [docs/DEMO.md](docs/DEMO.md) | The demo shop: load, reload, wipe, a 10-minute demo script |
 | [docs/DEPLOY.md](docs/DEPLOY.md) | Ubuntu server, one site per client, SSL, backups, restore, updates, security, new client in 2 hours |
 | [docs/WEBHOOKS.md](docs/WEBHOOKS.md) | n8n webhooks and payloads |
+| [docs/COURIER_INTEGRATION.md](docs/COURIER_INTEGRATION.md) | Yalidine / ZR Express APIs and prices: what is known, and the step-by-step plan for real connectors |
 | [docs/LOCAL_TEST.md](docs/LOCAL_TEST.md) | Run everything on your Fedora machine |
 | [DECISIONS.md](DECISIONS.md) | Every design choice, one line of reasoning each |
 | [LATER.md](LATER.md) | Ideas and out-of-scope items for later phases |

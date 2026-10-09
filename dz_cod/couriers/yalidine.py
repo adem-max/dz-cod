@@ -1,37 +1,19 @@
-# UNTESTED: no call to the real Yalidine API was ever made (official docs not reachable).
-"""Yalidine connector: DOCUMENTED STUB, NOT IMPLEMENTED.
+# UNTESTED: no call to the real Yalidine API was ever made from this app.
+"""Yalidine connector: DOCUMENTED STUB, NOT IMPLEMENTED YET.
 
-Why a stub?
------------
-The project rule is: build a real connector only from public, reliable API
-documentation, and never invent endpoints. When this app was written
-(October 2026) the official Yalidine developer documentation
-(https://yalidine.app -> espace développeur) could not be reached from the
-build machine, and neither could the docs of ZR Express, Maystro or the
-Ecotrack platform. So no real connector was written.
+The official Yalidine developer documentation sits behind the merchant
+login and could not be opened from the build machine. A verbatim copy of it
+(API + webhooks, September 2026) was later found in an open-source project,
+so the API is now known well enough to implement this connector:
 
-What we know (NOT verified against official docs)
---------------------------------------------------
-An unofficial open-source Python client ("yalidine" 0.0.3 on PyPI) uses:
-- base URL: https://api.yalidine.app/v1/
-- authentication with two HTTP headers: X-API-ID and X-API-TOKEN
-  (both found in the Yalidine merchant dashboard)
-- resources named parcels/, histories/, wilayas/, communes/, centers/,
-  deliveryfees/
+    base URL   https://api.yalidine.app/v1/
+    headers    X-API-ID, X-API-TOKEN (from the client's Developer Dashboard)
+    create     POST parcels/        status   GET histories/<tracking>
+    prices     GET fees/?from_wilaya_id=..&to_wilaya_id=..
 
-Treat this as a lead only. Before implementing, log into the client's Yalidine
-account, open the official API documentation, and check every URL, field name
-and status word.
-
-How to implement it later
--------------------------
-1. Fill the three methods below using `requests` (already installed with Frappe).
-2. Read the credentials from the courier (Supplier) record:
-       api_id = self.courier.dz_api_id
-       api_token = self.courier.get_password("dz_api_token")
-3. In get_status(), translate Yalidine's status words into our four words
-   (IN_TRANSIT, DELIVERED, RETURNED, UNKNOWN from base.py).
-4. Test with the client's real account on a test parcel.
+The full plan, field by field, is in docs/COURIER_INTEGRATION.md (steps Y1
+to Y9). Check every detail against the docs in the client's own Yalidine
+dashboard before going live.
 """
 
 from frappe import _

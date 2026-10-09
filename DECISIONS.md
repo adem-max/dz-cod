@@ -49,7 +49,9 @@ Newest decisions are added at the bottom of each section.
 - **Adapter pattern with three methods** (create shipment, get status, get tracking): the rest of the app never knows which courier is used.
 - **"Manuel" is the default connector**: tracking typed by hand, status moved by hand.
 - **"Mock" connector works offline**: tracking `MOCK-<order>`, statuses simulated in the Redis cache.
-- **Yalidine is a documented stub, not a real connector**: the official developer documentation of Yalidine, ZR Express, Maystro and Ecotrack could not be reached from the build machine (blocked). An unofficial PyPI client shows a likely base URL and header names; they are recorded in `couriers/yalidine.py` as unverified leads and **not used**. No endpoint was invented.
+- **Yalidine is a documented stub, not a real connector**: the official developer documentation of Yalidine, ZR Express, Maystro and Ecotrack could not be reached from the build machine (Yalidine's is behind the merchant login). A verbatim copy of Yalidine's docs and two independent open-source clients were found afterwards; the implementation plan built from them is in docs/COURIER_INTEGRATION.md. No endpoint was invented, and nothing was called against a real account.
+- **Courier prices are per account, not public**: Yalidine prices depend on the departure wilaya and the destination commune and can be imported from its fees API; ZR Express rates are negotiated. The wilaya table stays the single place for rates, filled by import (Yalidine) or by hand (ZR).
+- **ERPNext manufacturing is left installed and untouched**: out of scope for this phase, nothing in dz_cod depends on it or disables it, so it can be used later for the print workshop.
 - **Courier settings live on the Supplier** (custom fields shown when "Is Transporter" is ticked): a courier is a supplier in ERPNext, no new doctype needed.
 - **Hourly status sync is off by default** (setting) and uses the normal workflow actions, so webhooks and stock movements behave as if a person clicked.
 
